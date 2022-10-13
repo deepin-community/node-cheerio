@@ -1,0 +1,49 @@
+Source: node-cheerio
+Maintainer: Debian Javascript Maintainers <pkg-javascript-devel@lists.alioth.debian.org>
+Uploaders: Paolo Greppi <paolo.greppi@libpf.com>, Yadd <yadd@debian.org>
+Section: javascript
+Testsuite: autopkgtest-pkg-nodejs
+Priority: optional
+Build-Depends: debhelper-compat (= 13)
+ , dh-sequence-nodejs
+ , jest <!nocheck>
+ , node-css-select (>= 3.1.2~) <!nocheck>
+ , node-css-what (>= 4.0.0~) <!nocheck>
+ , node-dom-serializer (>= 1.2.0~) <!nocheck>
+ , node-domelementtype (>= 2.1.0~) <!nocheck>
+ , node-domhandler (>= 4.2.0~) <!nocheck>
+ , node-domutils (>= 2.4.4~) <!nocheck>
+ , node-entities <!nocheck>
+ , node-expect.js <!nocheck>
+ , node-htmlparser2 (>= 6.1.0~) <!nocheck>
+ , node-types-parse5
+ , node-jsdom (>= 18) <!nocheck>
+ , node-tslib
+ , node-typescript
+ , ts-jest <!nocheck>
+Standards-Version: 4.6.0
+Vcs-Browser: https://salsa.debian.org/js-team/node-cheerio
+Vcs-Git: https://salsa.debian.org/js-team/node-cheerio.git
+Homepage: https://github.com/cheeriojs/cheerio
+Rules-Requires-Root: no
+
+Package: node-cheerio
+Architecture: all
+Depends: ${misc:Depends}
+ , node-css-select (>= 3.1.2~)
+ , node-css-what (>= 4.0.0~)
+ , node-dom-serializer (>= 1.2.0~)
+ , node-domelementtype (>= 2.1.0~)
+ , node-domhandler (>= 4.2.0~)
+ , node-domutils (>= 2.4.4~)
+ , node-entities
+ , node-htmlparser2 (>= 6.1.0~)
+ , node-jsdom (>= 18)
+ , node-tslib
+Provides: ${nodejs:Provides}
+Description: Server-side jQuery implementation
+ Node-js module providing a tiny, fast, flexible and elegant
+ implementation of core jQuery designed specifically for the
+ server.
+ .
+ Node.js is an event-based server-side JavaScript engine.

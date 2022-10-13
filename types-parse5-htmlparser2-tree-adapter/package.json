@@ -1,0 +1,32 @@
+{
+    "name": "@types/parse5-htmlparser2-tree-adapter",
+    "version": "6.0.1",
+    "description": "TypeScript definitions for parse5-htmlparser2-tree-adapter",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/parse5-htmlparser2-tree-adapter",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Ivan Nikulin",
+            "url": "https://github.com/inikulin",
+            "githubUsername": "inikulin"
+        },
+        {
+            "name": "James Garbutt",
+            "url": "https://github.com/43081j",
+            "githubUsername": "43081j"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/parse5-htmlparser2-tree-adapter"
+    },
+    "scripts": {},
+    "dependencies": {
+        "@types/parse5": "*"
+    },
+    "typesPublisherContentHash": "1bbeb6982f599243cfcc619a1f1fd7a07a69b8471d92eee8d199fc84f524a40b",
+    "typeScriptVersion": "3.6"
+}

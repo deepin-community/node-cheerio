@@ -1,0 +1,87 @@
+node-cheerio (1.0.0~rc~10+~cs13.5.2-4) unstable; urgency=medium
+
+  * Fix dependencies (missing node-ts-lib)
+  * Fix autopkgtest
+  * Add lintian overrides
+  * Update copyright
+
+ -- Yadd <yadd@debian.org>  Mon, 18 Oct 2021 21:54:22 +0200
+
+node-cheerio (1.0.0~rc~10+~cs13.5.2-3) unstable; urgency=medium
+
+  * Binary upload to avoid test circular dependencies
+
+ -- Yadd <yadd@debian.org>  Sun, 17 Oct 2021 07:57:38 +0200
+
+node-cheerio (1.0.0~rc~10+~cs13.5.2-2) unstable; urgency=medium
+
+  * Back to unstable
+
+ -- Yadd <yadd@debian.org>  Sat, 16 Oct 2021 08:31:06 +0200
+
+node-cheerio (1.0.0~rc~10+~cs13.5.2-1) experimental; urgency=medium
+
+  * Fix GitHub tags regex
+  * Declare compliance with policy 4.6.0
+  * Update test: jest instead of mocha
+  * Components: replace cheerio-select-tmp by cheerio-select, add
+    @types/parse5-htmlparser2-tree-adapter
+  * New upstream version 1.0.0~rc~10+~cs13.5.2
+  * Build with tsc
+  * Add patch to workaround tsc update
+  * Update minimal dependency versions
+
+ -- Yadd <yadd@debian.org>  Fri, 15 Oct 2021 06:52:55 +0200
+
+node-cheerio (1.0.0~rc~5+~cs6.1.2-4) unstable; urgency=medium
+
+  * Source-only upload
+
+ -- Xavier Guimard <yadd@debian.org>  Sun, 10 Jan 2021 20:13:33 +0100
+
+node-cheerio (1.0.0~rc~5+~cs6.1.2-3) unstable; urgency=medium
+
+  * Binary upload to avoid circular test dependencies
+
+ -- Xavier Guimard <yadd@debian.org>  Sun, 10 Jan 2021 09:56:55 +0100
+
+node-cheerio (1.0.0~rc~5+~cs6.1.2-2) unstable; urgency=medium
+
+  * Back to unstable after successful tests
+
+ -- Xavier Guimard <yadd@debian.org>  Sat, 09 Jan 2021 22:06:22 +0100
+
+node-cheerio (1.0.0~rc~5+~cs6.1.2-1) experimental; urgency=medium
+
+  * Components:
+    + Remove @types/cheerio (ts definitions are embedded now)
+    + Embed cheerio-select-tmp
+  * New upstream version 1.0.0~rc~5+~cs6.1.2
+  * Drop patches
+  * Update minimal version of dependencies
+  * Drop dependency to nodejs
+
+ -- Xavier Guimard <yadd@debian.org>  Fri, 08 Jan 2021 18:02:25 +0100
+
+node-cheerio (1.0.0~rc~3+~cs6.22.23-1) unstable; urgency=medium
+
+  * Add ctype=nodejs to component(s)
+  * Embed parse5-htmlparser2-tree-adapter
+  * New upstream version 1.0.0~rc~3+~cs6.22.23 (Closes: #976607)
+  * Update test patch
+  * Update code to be compliant with recent parse5
+
+ -- Xavier Guimard <yadd@debian.org>  Sat, 05 Dec 2020 20:33:51 +0100
+
+node-cheerio (0.22.0-2) unstable; urgency=medium
+
+  * Authorize beta versions in debian/watch
+
+ -- Xavier Guimard <yadd@debian.org>  Tue, 24 Nov 2020 06:03:09 +0100
+
+node-cheerio (0.22.0-1) unstable; urgency=low
+
+  [ Paolo Greppi, Xavier Guimard ]
+  * Initial release (Closes: #848315)
+
+ -- Xavier Guimard <yadd@debian.org>  Mon, 23 Nov 2020 13:32:56 +0100
