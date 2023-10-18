@@ -1,5 +1,6 @@
 # False positive
-very-long-line-length-in-source-file Readme.md line 56 is 516 characters long (>512)
-very-long-line-length-in-source-file benchmark/documents/jquery.html line 1165 is 3169 characters long (>512)
-very-long-line-length-in-source-file cheerio-select/LICENSE line 10 is 686 characters long (>512)
-very-long-line-length-in-source-file cheerio-select/test/fixtures/fries.xml line 1 is 622 characters long (>512)
+source-is-missing *benchmark/documents/jquery.html*
+very-long-line-length-in-source-file *.md*
+very-long-line-length-in-source-file *benchmark/documents/jquery.html*
+very-long-line-length-in-source-file *cheerio-select/LICENSE*
+very-long-line-length-in-source-file *cheerio-select/test/fixtures/fries.xml*

@@ -1,3 +1,83 @@
+node-cheerio (1.0.0~rc~12+~cs2.1.0-3) unstable; urgency=medium
+
+  * Add fix for jest 29
+
+ -- Yadd <yadd@debian.org>  Tue, 18 Oct 2022 15:53:49 +0200
+
+node-cheerio (1.0.0~rc~12+~cs2.1.0-2) unstable; urgency=medium
+
+  * Add dependency to node-parse5-htmlparser2-tree-adapter
+
+ -- Yadd <yadd@debian.org>  Thu, 07 Jul 2022 10:05:23 +0200
+
+node-cheerio (1.0.0~rc~12+~cs2.1.0-1) unstable; urgency=medium
+
+  * New upstream version 1.0.0~rc~12+~cs2.1.0
+  * Drop patches, upstream updated its configuration for jest 28
+  * Require jsdom >= 20
+
+ -- Yadd <yadd@debian.org>  Mon, 27 Jun 2022 12:34:01 +0200
+
+node-cheerio (1.0.0~rc~11+~cs2.1.0-3) unstable; urgency=medium
+
+  * Back to unstable
+
+ -- Yadd <yadd@debian.org>  Mon, 27 Jun 2022 09:17:38 +0200
+
+node-cheerio (1.0.0~rc~11+~cs2.1.0-2) experimental; urgency=medium
+
+  * Add missing link to parse5-htmlparser2-tree-adapter
+
+ -- Yadd <yadd@debian.org>  Sun, 26 Jun 2022 16:10:45 +0200
+
+node-cheerio (1.0.0~rc~11+~cs2.1.0-1) experimental; urgency=medium
+
+  * New upstream version 1.0.0~rc~11+~cs2.1.0
+  * Drop fix-test-for-last-domutils.patch, now included in upstream
+  * Update lintian overrides
+  * Update minimal dependency versions
+  * Update typescript links
+  * Add patch to fix jest configuration
+
+ -- Yadd <yadd@debian.org>  Sun, 26 Jun 2022 08:55:32 +0200
+
+node-cheerio (1.0.0~rc~10+repack-3) unstable; urgency=medium
+
+  * Declare compliance with policy 4.6.1
+  * Fix build links (Closes: #1011839)
+
+ -- Yadd <yadd@debian.org>  Sat, 28 May 2022 08:29:35 +0200
+
+node-cheerio (1.0.0~rc~10+repack-2) unstable; urgency=medium
+
+  * Team upload
+  * Fix tsc for last node-domutils
+
+ -- Yadd <yadd@debian.org>  Mon, 02 May 2022 16:18:07 +0200
+
+node-cheerio (1.0.0~rc~10+repack-1) unstable; urgency=medium
+
+  * Team upload
+  * Drop component parse5-htmlparser2-tree-adapter (Closes: #1007117)
+
+ -- Yadd <yadd@debian.org>  Sat, 12 Mar 2022 07:43:34 +0100
+
+node-cheerio (1.0.0~rc~10+~cs13.5.2-6) unstable; urgency=medium
+
+  * Fix build: move jest-diff to debian/nodejs/extcopies
+
+ -- Yadd <yadd@debian.org>  Mon, 06 Dec 2021 10:09:18 +0100
+
+node-cheerio (1.0.0~rc~10+~cs13.5.2-5) unstable; urgency=medium
+
+  [ Yadd ]
+  * Fix debian/watch
+
+  [ Gianfranco Costamagna ]
+  * Update typescript patch (Closes: #1000425)
+
+ -- Yadd <yadd@debian.org>  Tue, 23 Nov 2021 06:27:56 +0100
+
 node-cheerio (1.0.0~rc~10+~cs13.5.2-4) unstable; urgency=medium
 
   * Fix dependencies (missing node-ts-lib)

@@ -5,21 +5,21 @@
  *   https://github.com/eslint/website/blob/230e73457dcdc2353ad7934e876a5a222a17b1d7/_tools/fetch-sponsors.js.
  */
 
-// eslint-disable-next-line node/no-missing-import
-import * as fs from 'node:fs/promises';
-import fetch from 'node-fetch';
+import * as fs from 'fs/promises';
+import { request } from 'undici';
 import { graphql as githubGraphQL } from '@octokit/graphql';
 
 type Tier = 'sponsor' | 'professional' | 'backer';
 
 interface Sponsor {
+  createdAt: string;
   name: string;
   image: string;
   url: string;
   type: 'ORGANIZATION' | 'INDIVIDUAL' | 'FUND';
   monthlyDonation: number;
   source: 'github' | 'opencollective';
-  tier: Tier;
+  tier: Tier | null;
 }
 
 const tierSponsors: Record<Tier, Sponsor[]> = {
@@ -40,7 +40,7 @@ if (!CHEERIO_SPONSORS_GITHUB_TOKEN) {
  * @param monthlyDonation - The monthly donation in dollars.
  * @returns The ID of the tier the donation belongs to.
  */
-function getTierSlug(monthlyDonation: number): Tier {
+function getTierSlug(monthlyDonation: number): Tier | null {
   if (monthlyDonation >= 100) {
     return 'sponsor';
   }
@@ -49,7 +49,11 @@ function getTierSlug(monthlyDonation: number): Tier {
     return 'professional';
   }
 
-  return 'backer';
+  if (monthlyDonation >= 5) {
+    return 'backer';
+  }
+
+  return null;
 }
 
 /**
@@ -63,8 +67,8 @@ async function fetchOpenCollectiveSponsors(): Promise<Sponsor[]> {
   const query = `{
         account(slug: "cheerio") {
           orders(status: ACTIVE, filter: INCOMING) {
-            totalCount
             nodes {
+              createdAt
               fromAccount {
                 name
                 website
@@ -86,21 +90,21 @@ async function fetchOpenCollectiveSponsors(): Promise<Sponsor[]> {
         }
       }`;
 
-  const result = await fetch(endpoint, {
+  const { body } = await request(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query }),
   });
 
-  const payload = await result.json();
+  const payload = await body.json();
 
   return payload.data.account.orders.nodes.map((order: any) => {
+    const donation = order.amount.value * 100;
     const monthlyDonation =
-      order.frequency === 'year'
-        ? Math.round((order.amount.value * 100) / 12)
-        : order.amount.value * 100;
+      order.frequency === 'YEARLY' ? Math.round(donation / 12) : donation;
 
     return {
+      createdAt: order.createdAt,
       name: order.fromAccount.name,
       url: order.fromAccount.website,
       image: order.fromAccount.imageUrl,
@@ -120,34 +124,37 @@ async function fetchOpenCollectiveSponsors(): Promise<Sponsor[]> {
  */
 async function fetchGitHubSponsors(): Promise<Sponsor[]> {
   const { organization } = await githubGraphQL(
-    `query {
+    `{
       organization(login: "cheeriojs") {
-        sponsorshipsAsMaintainer (first: 100) {
+        sponsorshipsAsMaintainer(first: 100) {
           nodes {
             sponsor: sponsorEntity {
-              ...on User {
-                name,
-                login,
-                avatarUrl,
-                url,
-                websiteUrl,
+              ... on User {
+                name
+                login
+                avatarUrl
+                url
+                websiteUrl
                 isViewer
               }
-              ...on Organization {
-                name,
-                login,
-                avatarUrl,
-                url,
+              ... on Organization {
+                name
+                login
+                avatarUrl
+                url
                 websiteUrl
+                viewerCanAdminister
               }
-            },
+            }
             tier {
               monthlyPriceInDollars
             }
+            createdAt
           }
         }
       }
-    }`,
+    }
+    `,
     {
       headers: {
         authorization: `token ${CHEERIO_SPONSORS_GITHUB_TOKEN}`,
@@ -157,7 +164,8 @@ async function fetchGitHubSponsors(): Promise<Sponsor[]> {
 
   // Return an array in the same format as Open Collective
   return organization.sponsorshipsAsMaintainer.nodes.map(
-    ({ sponsor, tier }: any) => ({
+    ({ sponsor, tier, createdAt }: any) => ({
+      createdAt,
       name: sponsor.name,
       image: `${sponsor.avatarUrl}&s=128`,
       url: sponsor.websiteUrl || sponsor.url,
@@ -175,7 +183,7 @@ async function fetchGitHubSponsors(): Promise<Sponsor[]> {
  * Remove sponsors from lower tiers that have individual accounts,
  * but are clearly orgs.
  */
-const MISLABELED_ORGS = /[ck]as[yi]+no|bet$|poker|coffee/i;
+const MISLABELED_ORGS = /[ck]as[yi]+no|bet$|poker|gambling|coffee/i;
 
 const README_PATH = `${__dirname}/../Readme.md`;
 
@@ -183,21 +191,37 @@ const SECTION_START_BEGINNING = '<!-- BEGIN SPONSORS:';
 const SECTION_START_END = '-->';
 const SECTION_END = '<!-- END SPONSORS -->';
 
-(async () => {
-  const [openCollectiveSponsors, githubSponsors] = await Promise.all([
-    fetchOpenCollectiveSponsors(),
-    fetchGitHubSponsors(),
-  ]);
+const professionalToBackerOverrides = new Map([
+  ['Vasy Kafidoff', 'https://kafidoff.com'],
+]);
 
-  const sponsors = [...openCollectiveSponsors, ...githubSponsors];
+(async () => {
+  const openCollectiveSponsors = fetchOpenCollectiveSponsors();
+  const githubSponsors = fetchGitHubSponsors();
+
+  const sponsors = [
+    ...(await openCollectiveSponsors),
+    ...(await githubSponsors),
+  ];
+
+  sponsors.sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
 
   // Process into a useful format
   for (const sponsor of sponsors) {
     if (
       sponsor.tier !== 'sponsor' &&
-      (sponsor.type === 'ORGANIZATION' || MISLABELED_ORGS.test(sponsor.name))
+      (!sponsor.tier ||
+        sponsor.type === 'ORGANIZATION' ||
+        MISLABELED_ORGS.test(sponsor.name))
     ) {
       continue;
+    }
+
+    if (
+      (sponsor.tier === 'professional' || sponsor.tier === 'backer') &&
+      professionalToBackerOverrides.has(sponsor.name)
+    ) {
+      sponsor.url = professionalToBackerOverrides.get(sponsor.name)!;
     }
 
     tierSponsors[sponsor.tier].push(sponsor);
@@ -210,8 +234,8 @@ const SECTION_END = '<!-- END SPONSORS -->';
     );
   }
 
-  // Merge professionals into sponsors for now
-  tierSponsors.sponsor.push(...tierSponsors.professional);
+  // Merge professionals into backers for now
+  tierSponsors.backer.unshift(...tierSponsors.professional);
 
   let readme = await fs.readFile(README_PATH, 'utf8');
 
@@ -242,7 +266,10 @@ const SECTION_END = '<!-- END SPONSORS -->';
     ]
       .map(
         (s: Sponsor) =>
-          `<a href="${s.url}" target="_blank">![${s.name}](${s.image})</a>`
+          // Display each sponsor's image in the README.
+          `<a href="${s.url}" target="_blank" rel="noopener noreferrer">
+            <img style="max-height:128px;max-width:128px" src="${s.image}" title="${s.name}" alt="${s.name}"></img>
+          </a>`
       )
       .join('\n')}\n\n${readme.slice(sectionEndIndex)}`;
   }

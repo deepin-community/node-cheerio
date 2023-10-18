@@ -1,1 +1,7 @@
-.pc/
+node_modules
+npm-debug.log
+.DS_Store
+/.netlify/
+/coverage
+/docs
+/lib

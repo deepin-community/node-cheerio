@@ -1,8 +1,13 @@
+css-select
 css-what
-domelementtype
-jest-diff	test
-pretty-format	test
-ts-jest		test
+domhandler
+domutils
+dom-serializer
+htmlparser2
+parse5
+parse5-htmlparser2-tree-adapter
 tslib
+ts-jest	test
+@types/boolbase
 @types/node
-@types/parse5
+@types/jest	test

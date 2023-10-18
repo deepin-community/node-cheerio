@@ -1,0 +1,18 @@
+Description: fix for jest 29
+Author: Yadd <yadd@debian.org>
+Forwarded: not-needed
+Last-Update: 2022-10-18
+
+--- a/package.json
++++ b/package.json
+@@ -118,6 +118,10 @@
+     ]
+   },
+   "jest": {
++    "snapshotFormat": {
++      "escapeString": true,
++      "printBasicPrototype": true
++    },
+     "preset": "ts-jest",
+     "testEnvironment": "node",
+     "testPathIgnorePatterns": [

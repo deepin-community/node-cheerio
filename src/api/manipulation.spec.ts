@@ -1,7 +1,7 @@
 import { load } from '../../src';
 import type { CheerioAPI, Cheerio } from '..';
-import { fruits, divcontainers, mixedText } from '../__fixtures__/fixtures';
-import type { Node, Element } from 'domhandler';
+import { fruits, divcontainers, mixedText } from '../__fixtures__/fixtures.js';
+import type { AnyNode, Element } from 'domhandler';
 
 describe('$(...)', () => {
   let $: CheerioAPI;
@@ -92,8 +92,8 @@ describe('$(...)', () => {
 
     it('(fn) : should invoke the provided function with the correct arguments and context', () => {
       const $children = $fruits.children();
-      const args: [number, Node][] = [];
-      const thisValues: Node[] = [];
+      const args: [number, AnyNode][] = [];
+      const thisValues: AnyNode[] = [];
 
       $children.wrap(function (...myArgs) {
         args.push(myArgs);
@@ -237,8 +237,8 @@ describe('$(...)', () => {
 
     it('(fn) : should invoke the provided function with the correct arguments and context', () => {
       const $children = $fruits.children();
-      const args: [number, Node][] = [];
-      const thisValues: Node[] = [];
+      const args: [number, AnyNode][] = [];
+      const thisValues: AnyNode[] = [];
 
       $children.wrapInner(function (...myArgs) {
         args.push(myArgs);
@@ -640,7 +640,7 @@ describe('$(...)', () => {
     it('(fn) : should invoke the callback with the correct arguments and context', () => {
       $fruits = $fruits.children();
       const args: [number, string][] = [];
-      const thisValues: Node[] = [];
+      const thisValues: AnyNode[] = [];
 
       $fruits.append(function (...myArgs) {
         args.push(myArgs);
@@ -738,16 +738,16 @@ describe('$(...)', () => {
       const $style = $('<style>.foo {}</style>');
       $fruits.prepend($style);
       const styleTag = $fruits.children().get(0);
-      expect(styleTag.tagName).toBe('style');
-      expect(styleTag.children[0]).toHaveProperty('data', '.foo {}');
+      expect(styleTag?.tagName).toBe('style');
+      expect(styleTag?.children[0]).toHaveProperty('data', '.foo {}');
     });
 
     it('($(...)) : should add script element as first child', () => {
       const $script = $('<script>var foo;</script>');
       $fruits.prepend($script);
       const scriptTag = $fruits.children().get(0);
-      expect(scriptTag.tagName).toBe('script');
-      expect(scriptTag.children[0]).toHaveProperty('data', 'var foo;');
+      expect(scriptTag?.tagName).toBe('script');
+      expect(scriptTag?.children[0]).toHaveProperty('data', 'var foo;');
     });
 
     it('(Node) : should add node as first child', () => {
@@ -813,7 +813,7 @@ describe('$(...)', () => {
 
     it('(fn) : should invoke the callback with the correct arguments and context', () => {
       const args: [number, string][] = [];
-      const thisValues: Node[] = [];
+      const thisValues: AnyNode[] = [];
       $fruits = $fruits.children();
 
       $fruits.prepend(function (...myArgs) {
@@ -1021,7 +1021,7 @@ describe('$(...)', () => {
 
     it('(fn) : should invoke the callback with the correct arguments and context', () => {
       const args: [number, string][] = [];
-      const thisValues: Node[] = [];
+      const thisValues: AnyNode[] = [];
       $fruits = $fruits.children();
 
       $fruits.after(function (...myArgs) {
@@ -1304,7 +1304,7 @@ describe('$(...)', () => {
 
     it('(fn) : should invoke the callback with the correct arguments and context', () => {
       const args: [number, string][] = [];
-      const thisValues: Node[] = [];
+      const thisValues: AnyNode[] = [];
       $fruits = $fruits.children();
 
       $fruits.before(function (...myArgs) {
@@ -1597,7 +1597,7 @@ describe('$(...)', () => {
     it('(self) : should be replaced after replacing it with itself', () => {
       const $a = load('<a>foo</a>', null, false);
       const replacement = '<a>bar</a>';
-      $a('a').replaceWith((_, el: Node) => el);
+      $a('a').replaceWith((_, el: AnyNode) => el);
       $a('a').replaceWith(replacement);
       expect($a.html()).toBe(replacement);
     });
@@ -1619,8 +1619,8 @@ describe('$(...)', () => {
 
     it('(fn) : should invoke the callback with the correct argument and context', () => {
       const origChildren = $fruits.children().get();
-      const args: [number, Node][] = [];
-      const thisValues: Node[] = [];
+      const args: [number, AnyNode][] = [];
+      const thisValues: AnyNode[] = [];
 
       $fruits.children().replaceWith(function (...myArgs) {
         args.push(myArgs);
@@ -1899,6 +1899,11 @@ describe('$(...)', () => {
     it('should work with special chars added as strings', () => {
       const text = $('<p>M&M</p>').text();
       expect(text).toBe('M&M');
+    });
+
+    it('should turn passed values to strings', () => {
+      $('.apple').text(1 as any);
+      expect($('.apple')[0].childNodes[0]).toHaveProperty('data', '1');
     });
 
     it('( undefined ) : should act as an accessor', () => {

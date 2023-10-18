@@ -2,22 +2,12 @@ version=4
 opts=\
 dversionmangle=auto,\
 uversionmangle=s/\W([a-z])/~$1/g;s/([a-z])\W/$1~/,\
-filenamemangle=s/.*\/v?([\d\w\-\.-]+)\.tar\.gz/node-cheerio-$1.tar.gz/ \
- https://github.com/cheeriojs/cheerio/tags .*/archive/.*/v?([\d\.\-\w]+).tar.gz group
-
-# It is not recommended use npmregistry. Please investigate more.
-# Take a look at https://wiki.debian.org/debian/watch/
-opts="searchmode=plain,component=parse5-htmlparser2-tree-adapter,ctype=nodejs,pgpmode=none" \
- https://registry.npmjs.org/parse5-htmlparser2-tree-adapter https://registry.npmjs.org/parse5-htmlparser2-tree-adapter/-/parse5-htmlparser2-tree-adapter-([\d\.]+)@ARCHIVE_EXT@ checksum
-
-# It is not recommended use npmregistry. Please investigate more.
-# Take a look at https://wiki.debian.org/debian/watch/
-opts="searchmode=plain,component=types-parse5-htmlparser2-tree-adapter,ctype=nodejs,pgpmode=none" \
- https://registry.npmjs.org/@types/parse5-htmlparser2-tree-adapter https://registry.npmjs.org/@types/parse5-htmlparser2-tree-adapter/-/parse5-htmlparser2-tree-adapter-([\d\.]+)@ARCHIVE_EXT@ checksum
+filenamemangle=s/.*?(@ANY_VERSION@@ARCHIVE_EXT@)/node-cheerio-$1/ \
+ https://github.com/cheeriojs/cheerio/tags .*/archive/.*/v?([\d\.\-\w]+)@ARCHIVE_EXT@ group
 
 opts=\
 component=cheerio-select,\
 ctype=nodejs,\
 dversionmangle=auto,\
-filenamemangle=s/.*\/v?([\d\.-]+)\.tar\.gz/node-cheerio-select-$1.tar.gz/ \
- https://github.com/cheeriojs/cheerio-select/tags .*/archive.*/v?([\d\.]+).tar.gz checksum
+filenamemangle=s/.*?(\d[\d\.-]*@ARCHIVE_EXT@)/node-cheerio-select-$1/ \
+ https://github.com/cheeriojs/cheerio-select/tags .*/archive.*/v?([\d\.]+)@ARCHIVE_EXT@ checksum
