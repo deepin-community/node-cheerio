@@ -53,7 +53,7 @@ describe("index", () => {
     it("should support traversal-first queries", () => {
         const dom = parseDocument(`<p class=a><p class=b>`);
         const [a, b] = dom.children;
-        expect((a as Element).attribs.class).toBe("a");
+        expect(a).toMatchObject({ attribs: { class: "a" } });
         expect(select("+.b", a)).toStrictEqual([b]);
     });
 
@@ -106,5 +106,28 @@ describe("index", () => {
 
         expect(some(ps, "div p:not(:scope)", { context: [ps[1]] })).toBe(true);
         expect(some(ps, "div p:not(:scope)", { context: ps })).toBe(false);
+    });
+
+    it("should support trailing selectors (https://github.com/cheeriojs/cheerio/issues/2450)", () => {
+        const dom = parseDocument("<ul><li>One</li><li>Two</li></ul>");
+        expect(select("ul li", dom)).toHaveLength(2);
+        expect(select("ul li:lt(3)", dom)).toHaveLength(2);
+        expect(select("ul:first li", dom, { context: [dom] })).toHaveLength(2);
+        expect(
+            select("ul:first li:lt(3)", dom, { context: [dom] })
+        ).toHaveLength(2);
+    });
+
+    it("should support limit argument", () => {
+        const dom = parseDocument("<p>Paragraph".repeat(10));
+        expect(select("p:even", dom, {}, 1)).toHaveLength(1);
+        expect(select("p:even", dom, {}, 5)).toHaveLength(5);
+        expect(select("p:odd", dom, {}, 1)).toHaveLength(1);
+        expect(select("p:odd", dom, {}, 5)).toHaveLength(5);
+        expect(select("p:lt(5)", dom, {}, 2)).toHaveLength(2);
+        expect(select("p:lt(5)", dom, {}, 6)).toHaveLength(5);
+
+        // Should not use the limit for positionals before the end of the selector
+        expect(select("p:odd + p:eq(5)", dom, {}, 1)).toHaveLength(1);
     });
 });

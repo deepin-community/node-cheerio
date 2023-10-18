@@ -4,14 +4,25 @@
  * @module cheerio/traversing
  */
 
-import { Node, Element, hasChildren, isDocument, Document } from 'domhandler';
-import type { Cheerio } from '../cheerio';
+import {
+  AnyNode,
+  Element,
+  hasChildren,
+  isDocument,
+  Document,
+} from 'domhandler';
+import type { Cheerio } from '../cheerio.js';
 import * as select from 'cheerio-select';
-import { domEach, isTag, isCheerio } from '../utils';
-import { contains } from '../static';
-import { DomUtils } from 'htmlparser2';
-import type { FilterFunction, AcceptedFilters } from '../types';
-const { uniqueSort } = DomUtils;
+import { domEach, isTag, isCheerio } from '../utils.js';
+import { contains } from '../static.js';
+import {
+  getChildren,
+  getSiblings,
+  nextElementSibling,
+  prevElementSibling,
+  uniqueSort,
+} from 'domutils';
+import type { FilterFunction, AcceptedFilters } from '../types.js';
 const reSiblingSelector = /^\s*[~+]/;
 
 /**
@@ -32,7 +43,7 @@ const reSiblingSelector = /^\s*[~+]/;
  * @returns The found elements.
  * @see {@link https://api.jquery.com/find/}
  */
-export function find<T extends Node>(
+export function find<T extends AnyNode>(
   this: Cheerio<T>,
   selectorOrHaystack?: string | Cheerio<Element> | Element
 ): Cheerio<Element> {
@@ -40,7 +51,7 @@ export function find<T extends Node>(
     return this._make([]);
   }
 
-  const context: Node[] = this.toArray();
+  const context: AnyNode[] = this.toArray();
 
   if (typeof selectorOrHaystack !== 'string') {
     const haystack = isCheerio(selectorOrHaystack)
@@ -59,7 +70,13 @@ export function find<T extends Node>(
   const options = {
     context,
     root: this._root?.[0],
+
+    // Pass options that are recognized by `cheerio-select`
     xmlMode: this.options.xmlMode,
+    lowerCaseTags: this.options.lowerCaseTags,
+    lowerCaseAttributeNames: this.options.lowerCaseAttributeNames,
+    pseudos: this.options.pseudos,
+    quirksMode: this.options.quirksMode,
   };
 
   return this._make(select.select(selectorOrHaystack, elems, options));
@@ -74,13 +91,13 @@ export function find<T extends Node>(
  * @returns - Function for wrapping generating functions.
  */
 function _getMatcher<P>(
-  matchMap: (fn: (elem: Node) => P, elems: Cheerio<Node>) => Element[]
+  matchMap: (fn: (elem: AnyNode) => P, elems: Cheerio<AnyNode>) => Element[]
 ) {
   return function (
-    fn: (elem: Node) => P,
+    fn: (elem: AnyNode) => P,
     ...postFns: ((elems: Element[]) => Element[])[]
   ) {
-    return function <T extends Node>(
+    return function <T extends AnyNode>(
       this: Cheerio<T>,
       selector?: AcceptedFilters<Element>
     ): Cheerio<Element> {
@@ -106,7 +123,7 @@ function _getMatcher<P>(
 }
 
 /** Matcher that adds multiple elements for each entry in the input. */
-const _matcher = _getMatcher((fn: (elem: Node) => Element[], elems) => {
+const _matcher = _getMatcher((fn: (elem: AnyNode) => Element[], elems) => {
   const ret: Element[][] = [];
 
   for (let i = 0; i < elems.length; i++) {
@@ -119,7 +136,7 @@ const _matcher = _getMatcher((fn: (elem: Node) => Element[], elems) => {
 
 /** Matcher that adds at most one element for each entry in the input. */
 const _singleMatcher = _getMatcher(
-  (fn: (elem: Node) => Element | null, elems) => {
+  (fn: (elem: AnyNode) => Element | null, elems) => {
     const ret: Element[] = [];
 
     for (let i = 0; i < elems.length; i++) {
@@ -138,14 +155,14 @@ const _singleMatcher = _getMatcher(
  * @returns A function usable for `*Until` methods.
  */
 function _matchUntil(
-  nextElem: (elem: Node) => Element | null,
+  nextElem: (elem: AnyNode) => Element | null,
   ...postFns: ((elems: Element[]) => Element[])[]
 ) {
   // We use a variable here that is used from within the matcher.
   let matches: ((el: Element, i: number) => boolean) | null = null;
 
   const innerMatcher = _getMatcher(
-    (nextElem: (elem: Node) => Element | null, elems) => {
+    (nextElem: (elem: AnyNode) => Element | null, elems) => {
       const matched: Element[] = [];
 
       domEach(elems, (elem) => {
@@ -160,7 +177,7 @@ function _matchUntil(
     }
   )(nextElem, ...postFns);
 
-  return function <T extends Node>(
+  return function <T extends AnyNode>(
     this: Cheerio<T>,
     selector?: AcceptedFilters<Element> | null,
     filterSelector?: AcceptedFilters<Element>
@@ -182,7 +199,7 @@ function _matchUntil(
   };
 }
 
-function _removeDuplicates<T extends Node>(elems: T[]): T[] {
+function _removeDuplicates<T extends AnyNode>(elems: T[]): T[] {
   return Array.from(new Set<T>(elems));
 }
 
@@ -286,25 +303,31 @@ export const parentsUntil = _matchUntil(
  * @returns The closest nodes.
  * @see {@link https://api.jquery.com/closest/}
  */
-export function closest<T extends Node>(
+export function closest<T extends AnyNode>(
   this: Cheerio<T>,
-  selector?: AcceptedFilters<Node>
-): Cheerio<Node> {
-  const set: Node[] = [];
+  selector?: AcceptedFilters<Element>
+): Cheerio<AnyNode> {
+  const set: AnyNode[] = [];
 
   if (!selector) {
     return this._make(set);
   }
 
-  domEach(this, (elem: Node | null) => {
-    while (elem && elem.type !== 'root') {
-      if (
-        !selector ||
-        filterArray([elem], selector, this.options.xmlMode, this._root?.[0])
-          .length
-      ) {
+  const selectOpts = {
+    xmlMode: this.options.xmlMode,
+    root: this._root?.[0],
+  };
+
+  const selectFn =
+    typeof selector === 'string'
+      ? (elem: Element) => select.is(elem, selector, selectOpts)
+      : getFilterFn(selector);
+
+  domEach(this, (elem: AnyNode | null) => {
+    while (elem && isTag(elem)) {
+      if (selectFn(elem, 0)) {
         // Do not add duplicate elements to the set
-        if (elem && !set.includes(elem)) {
+        if (!set.includes(elem)) {
           set.push(elem);
         }
         break;
@@ -331,7 +354,7 @@ export function closest<T extends Node>(
  * @returns The next nodes.
  * @see {@link https://api.jquery.com/next/}
  */
-export const next = _singleMatcher((elem) => DomUtils.nextElementSibling(elem));
+export const next = _singleMatcher((elem) => nextElementSibling(elem));
 
 /**
  * Gets all the following siblings of the first selected element, optionally
@@ -378,7 +401,7 @@ export const nextAll = _matcher((elem) => {
  * @see {@link https://api.jquery.com/nextUntil/}
  */
 export const nextUntil = _matchUntil(
-  (el) => DomUtils.nextElementSibling(el),
+  (el) => nextElementSibling(el),
   _removeDuplicates
 );
 
@@ -398,7 +421,7 @@ export const nextUntil = _matchUntil(
  * @returns The previous nodes.
  * @see {@link https://api.jquery.com/prev/}
  */
-export const prev = _singleMatcher((elem) => DomUtils.prevElementSibling(elem));
+export const prev = _singleMatcher((elem) => prevElementSibling(elem));
 
 /**
  * Gets all the preceding siblings of the first selected element, optionally
@@ -446,7 +469,7 @@ export const prevAll = _matcher((elem) => {
  * @see {@link https://api.jquery.com/prevUntil/}
  */
 export const prevUntil = _matchUntil(
-  (el) => DomUtils.prevElementSibling(el),
+  (el) => prevElementSibling(el),
   _removeDuplicates
 );
 
@@ -471,14 +494,12 @@ export const prevUntil = _matchUntil(
  */
 export const siblings = _matcher(
   (elem) =>
-    DomUtils.getSiblings(elem).filter(
-      (el): el is Element => isTag(el) && el !== elem
-    ),
+    getSiblings(elem).filter((el): el is Element => isTag(el) && el !== elem),
   uniqueSort
 );
 
 /**
- * Gets the children of the first selected element.
+ * Gets the element children of each element in the set of matched elements.
  *
  * @category Traversing
  * @example
@@ -496,7 +517,7 @@ export const siblings = _matcher(
  * @see {@link https://api.jquery.com/children/}
  */
 export const children = _matcher(
-  (elem) => DomUtils.getChildren(elem).filter(isTag),
+  (elem) => getChildren(elem).filter(isTag),
   _removeDuplicates
 );
 
@@ -515,8 +536,10 @@ export const children = _matcher(
  * @returns The children.
  * @see {@link https://api.jquery.com/contents/}
  */
-export function contents<T extends Node>(this: Cheerio<T>): Cheerio<Node> {
-  const elems = this.toArray().reduce<Node[]>(
+export function contents<T extends AnyNode>(
+  this: Cheerio<T>
+): Cheerio<AnyNode> {
+  const elems = this.toArray().reduce<AnyNode[]>(
     (newElems, elem) =>
       hasChildren(elem) ? newElems.concat(elem.children) : newElems,
     []
@@ -703,14 +726,14 @@ export function filterArray<T>(
   root?: Document
 ): Element[] | T[] {
   return typeof match === 'string'
-    ? select.filter(match, nodes as unknown as Node[], { xmlMode, root })
+    ? select.filter(match, nodes as unknown as AnyNode[], { xmlMode, root })
     : nodes.filter(getFilterFn<T>(match));
 }
 
 /**
- * Checks the current list of elements and returns `true` if *any* of the
+ * Checks the current list of elements and returns `true` if _any_ of the
  * elements match the selector. If using an element or Cheerio selection,
- * returns `true` if *any* of the elements match. If using a predicate function,
+ * returns `true` if _any_ of the elements match. If using a predicate function,
  * the function is executed in the context of the selected element, so `this`
  * refers to the current element.
  *
@@ -726,7 +749,7 @@ export function is<T>(
   const nodes = this.toArray();
   return typeof selector === 'string'
     ? select.some(
-        (nodes as unknown as Node[]).filter(isTag),
+        (nodes as unknown as AnyNode[]).filter(isTag),
         selector,
         this.options
       )
@@ -768,14 +791,14 @@ export function is<T>(
  * @returns The filtered collection.
  * @see {@link https://api.jquery.com/not/}
  */
-export function not<T extends Node>(
+export function not<T extends AnyNode>(
   this: Cheerio<T>,
   match: AcceptedFilters<T>
 ): Cheerio<T> {
   let nodes = this.toArray();
 
   if (typeof match === 'string') {
-    const matches = new Set<Node>(select.filter(match, nodes, this.options));
+    const matches = new Set<AnyNode>(select.filter(match, nodes, this.options));
     nodes = nodes.filter((el) => !matches.has(el));
   } else {
     const filterFn = getFilterFn(match);
@@ -810,9 +833,9 @@ export function not<T extends Node>(
  * @see {@link https://api.jquery.com/has/}
  */
 export function has(
-  this: Cheerio<Node | Element>,
+  this: Cheerio<AnyNode | Element>,
   selectorOrHaystack: string | Cheerio<Element> | Element
-): Cheerio<Node | Element> {
+): Cheerio<AnyNode | Element> {
   return this.filter(
     typeof selectorOrHaystack === 'string'
       ? // Using the `:has` selector here short-circuits searches.
@@ -835,7 +858,7 @@ export function has(
  * @returns The first element.
  * @see {@link https://api.jquery.com/first/}
  */
-export function first<T extends Node>(this: Cheerio<T>): Cheerio<T> {
+export function first<T extends AnyNode>(this: Cheerio<T>): Cheerio<T> {
   return this.length > 1 ? this._make(this[0]) : this;
 }
 
@@ -901,7 +924,7 @@ export function eq<T>(this: Cheerio<T>, i: number): Cheerio<T> {
  * @returns The element at the `i`th position.
  * @see {@link https://api.jquery.com/get/}
  */
-export function get<T>(this: Cheerio<T>, i: number): T;
+export function get<T>(this: Cheerio<T>, i: number): T | undefined;
 /**
  * Retrieve all elements matched by the Cheerio object, as an array.
  *
@@ -958,20 +981,21 @@ export function toArray<T>(this: Cheerio<T>): T[] {
  * @returns The index of the element.
  * @see {@link https://api.jquery.com/index/}
  */
-export function index<T extends Node>(
+export function index<T extends AnyNode>(
   this: Cheerio<T>,
-  selectorOrNeedle?: string | Cheerio<Node> | Node
+  selectorOrNeedle?: string | Cheerio<AnyNode> | AnyNode
 ): number {
-  let $haystack: Cheerio<Node>;
-  let needle;
+  let $haystack: Cheerio<AnyNode>;
+  let needle: AnyNode;
 
   if (selectorOrNeedle == null) {
     $haystack = this.parent().children();
     needle = this[0];
   } else if (typeof selectorOrNeedle === 'string') {
-    $haystack = this._make<Node>(selectorOrNeedle);
+    $haystack = this._make<AnyNode>(selectorOrNeedle);
     needle = this[0];
   } else {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     $haystack = this;
     needle = isCheerio(selectorOrNeedle)
       ? selectorOrNeedle[0]
@@ -995,9 +1019,9 @@ export function index<T extends Node>(
  * //=> 1
  * ```
  *
- * @param start - An position at which the elements begin to be selected. If
+ * @param start - A position at which the elements begin to be selected. If
  *   negative, it indicates an offset from the end of the set.
- * @param end - An position at which the elements stop being selected. If
+ * @param end - A position at which the elements stop being selected. If
  *   negative, it indicates an offset from the end of the set. If omitted, the
  *   range continues until the end of the set.
  * @returns The elements matching the specified range.
@@ -1026,7 +1050,7 @@ export function slice<T>(
  * @returns The previous state of the set of matched elements.
  * @see {@link https://api.jquery.com/end/}
  */
-export function end<T>(this: Cheerio<T>): Cheerio<Node> {
+export function end<T>(this: Cheerio<T>): Cheerio<AnyNode> {
   return this.prevObject ?? this._make([]);
 }
 
@@ -1046,7 +1070,7 @@ export function end<T>(this: Cheerio<T>): Cheerio<Node> {
  * @returns The combined set.
  * @see {@link https://api.jquery.com/add/}
  */
-export function add<S extends Node, T extends Node>(
+export function add<S extends AnyNode, T extends AnyNode>(
   this: Cheerio<T>,
   other: string | Cheerio<S> | S | S[],
   context?: Cheerio<S> | string
@@ -1072,10 +1096,10 @@ export function add<S extends Node, T extends Node>(
  * @returns The combined set.
  * @see {@link https://api.jquery.com/addBack/}
  */
-export function addBack<T extends Node>(
+export function addBack<T extends AnyNode>(
   this: Cheerio<T>,
   selector?: string
-): Cheerio<Node> {
+): Cheerio<AnyNode> {
   return this.prevObject
     ? this.add(selector ? this.prevObject.filter(selector) : this.prevObject)
     : this;

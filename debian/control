@@ -6,22 +6,24 @@ Testsuite: autopkgtest-pkg-nodejs
 Priority: optional
 Build-Depends: debhelper-compat (= 13)
  , dh-sequence-nodejs
- , jest <!nocheck>
- , node-css-select (>= 3.1.2~) <!nocheck>
- , node-css-what (>= 4.0.0~) <!nocheck>
- , node-dom-serializer (>= 1.2.0~) <!nocheck>
- , node-domelementtype (>= 2.1.0~) <!nocheck>
- , node-domhandler (>= 4.2.0~) <!nocheck>
- , node-domutils (>= 2.4.4~) <!nocheck>
+ , jest (>= 29) <!nocheck>
+ , node-boolbase (>= 1.0.0~)
+ , node-css-select (>= 5.1.0~)
+ , node-css-what (>= 6.1.0~)
+ , node-dom-serializer (>= 2.0.0~)
+ , node-domelementtype (>= 2.3.0~) <!nocheck>
+ , node-domhandler (>= 5.0.3~)
+ , node-domutils (>= 3.0.1~)
  , node-entities <!nocheck>
  , node-expect.js <!nocheck>
- , node-htmlparser2 (>= 6.1.0~) <!nocheck>
- , node-types-parse5
- , node-jsdom (>= 18) <!nocheck>
+ , node-htmlparser2 (>= 8.0.1~)
+ , node-parse5 (>= 7.0.0~)
+ , node-parse5-htmlparser2-tree-adapter
+ , node-jsdom (>= 20~) <!nocheck>
  , node-tslib
  , node-typescript
  , ts-jest <!nocheck>
-Standards-Version: 4.6.0
+Standards-Version: 4.6.1
 Vcs-Browser: https://salsa.debian.org/js-team/node-cheerio
 Vcs-Git: https://salsa.debian.org/js-team/node-cheerio.git
 Homepage: https://github.com/cheeriojs/cheerio
@@ -30,15 +32,17 @@ Rules-Requires-Root: no
 Package: node-cheerio
 Architecture: all
 Depends: ${misc:Depends}
- , node-css-select (>= 3.1.2~)
- , node-css-what (>= 4.0.0~)
- , node-dom-serializer (>= 1.2.0~)
- , node-domelementtype (>= 2.1.0~)
- , node-domhandler (>= 4.2.0~)
- , node-domutils (>= 2.4.4~)
+ , node-css-select (>= 5.1.0~)
+ , node-css-what (>= 6.1.0~)
+ , node-dom-serializer (>= 2.0.0~)
+ , node-domelementtype (>= 2.3.0~)
+ , node-domhandler (>= 5.0.3~)
+ , node-domutils (>= 3.0.1~)
  , node-entities
- , node-htmlparser2 (>= 6.1.0~)
- , node-jsdom (>= 18)
+ , node-htmlparser2 (>= 8.0.1~)
+ , node-jsdom (>= 19.0.0+~cs153.23.47~)
+ , node-parse5 (>= 7.0.0~)
+ , node-parse5-htmlparser2-tree-adapter
  , node-tslib
 Provides: ${nodejs:Provides}
 Description: Server-side jQuery implementation
